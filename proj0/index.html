@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Project 0: Becoming Friends with Your Camera</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #171717;
+        background: #f7f7f5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        width: min(880px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 72px 0 96px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+      }
+
+      h1 {
+        max-width: 700px;
+        font-size: clamp(2.5rem, 7vw, 5rem);
+        line-height: 0.98;
+      }
+
+      h2 {
+        font-size: 1.4rem;
+      }
+
+      section {
+        padding: 40px 0;
+      }
+
+      header {
+        padding-bottom: 72px;
+      }
+
+      p {
+        max-width: 680px;
+        margin: 16px 0 0;
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+
+      .placeholder-copy {
+        color: #666;
+      }
+
+      .image-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+      }
+
+      figure {
+        margin: 0;
+      }
+
+      .image-placeholder {
+        display: grid;
+        min-height: 320px;
+        place-items: center;
+        padding: 24px;
+        border: 1px solid #aaa;
+        background: #ededeb;
+        color: #666;
+        text-align: center;
+      }
+
+      .image-placeholder.wide {
+        min-height: 420px;
+      }
+
+      figcaption {
+        margin-top: 10px;
+        color: #555;
+        font-size: 0.875rem;
+        line-height: 1.4;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          width: min(100% - 28px, 880px);
+          padding-top: 44px;
+        }
+
+        header {
+          padding-bottom: 52px;
+        }
+
+        .image-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .image-placeholder,
+        .image-placeholder.wide {
+          min-height: 260px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Becoming Friends with Your Camera</h1>
+      </header>
+
+      <section aria-labelledby="overview-heading">
+        <h2 id="overview-heading">Overview</h2>
+        <p class="placeholder-copy">
+          Add a short introduction to the project and what you learned about
+          perspective, focal length, and camera position.
+        </p>
+      </section>
+
+      <section aria-labelledby="selfie-heading">
+        <h2 id="selfie-heading">Part 1: The Wrong Way vs. the Right Way</h2>
+        <p class="placeholder-copy">
+          Describe how you captured both portraits and explain why stepping back
+          and zooming in changes the appearance of the face.
+        </p>
+
+        <div class="image-grid">
+          <figure>
+            <div class="image-placeholder" role="img" aria-label="Close portrait placeholder">
+              Close portrait
+            </div>
+            <figcaption>Add distance and zoom details.</figcaption>
+          </figure>
+          <figure>
+            <div class="image-placeholder" role="img" aria-label="Distant portrait placeholder">
+              Distant, zoomed portrait
+            </div>
+            <figcaption>Add distance and zoom details.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section aria-labelledby="architecture-heading">
+        <h2 id="architecture-heading">Part 2: Architectural Perspective Compression</h2>
+        <p class="placeholder-copy">
+          Describe where each image was taken and explain why the zoomed image
+          appears flatter or more compressed.
+        </p>
+
+        <div class="image-grid">
+          <figure>
+            <div class="image-placeholder" role="img" aria-label="Zoomed building placeholder">
+              Zoomed building view
+            </div>
+            <figcaption>Add distance and zoom details.</figcaption>
+          </figure>
+          <figure>
+            <div class="image-placeholder" role="img" aria-label="Closer building placeholder">
+              Closer, unzoomed view
+            </div>
+            <figcaption>Add distance and zoom details.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section aria-labelledby="dolly-heading">
+        <h2 id="dolly-heading">Part 3: The Dolly Zoom</h2>
+        <p class="placeholder-copy">
+          Describe the scene, how you kept the subject at a consistent size, and
+          what changed in the background as the camera moved.
+        </p>
+
+        <figure style="margin-top: 24px">
+          <div class="image-placeholder wide" role="img" aria-label="Dolly zoom animation placeholder">
+            Dolly zoom GIF
+          </div>
+          <figcaption>Add the number of frames and capture setup.</figcaption>
+        </figure>
+      </section>
+    </main>
+  </body>
+</html>
