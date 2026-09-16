@@ -2,11 +2,215 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=../coming-soon.html" />
-    <meta name="robots" content="noindex" />
-    <title>Project 1 | CS 180</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CS 180 Project 1: aligning Prokudin-Gorskii's color channels with normalized cross-correlation and an image pyramid." />
+    <title>Project 1: Images of the Russian Empire | Ray Sun</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600&amp;display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: light; font-family: "Inconsolata", monospace; color: #171717; background: #f7f7f5; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      main { width: min(880px, calc(100% - 40px)); margin: 0 auto; padding: 72px 0 96px; }
+      a { color: inherit; text-underline-offset: 3px; }
+      a:hover { color: #555; }
+      a:focus-visible { outline: 2px solid #171717; outline-offset: 5px; }
+      .back { display: inline-block; margin-bottom: 34px; color: #555; font-size: .875rem; line-height: 1.4; }
+      h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.025em; }
+      h1 { max-width: 720px; font-size: clamp(2rem, 3.5vw, 2.75rem); line-height: 1.08; }
+      h2, h3 { font-size: 1.4rem; }
+      h3 { margin-top: 28px; }
+      header { padding-bottom: 72px; }
+      .byline, .section-copy, section p, li { color: #666; }
+      p, li { font-size: 1rem; line-height: 1.65; }
+      p { max-width: 680px; margin: 16px 0 0; }
+      section { padding: 40px 0; }
+      ol { max-width: 680px; padding-left: 24px; }
+      li { padding-left: 4px; margin: 8px 0; }
+      .image-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 24px; align-items: start; }
+      figure { margin: 0; min-width: 0; }
+      .image-link { display: block; }
+      img { display: block; width: 100%; height: auto; }
+      figcaption { color: #555; margin-top: 10px; font-size: .875rem; line-height: 1.4; }
+      .image-title, .offsets { display: block; }
+      .image-title { margin-bottom: 3px; }
+      .equation { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 24px 0; font-size: 1rem; color: #666; }
+      .fraction { display: inline-flex; flex-direction: column; text-align: center; }
+      .numerator { border-bottom: 1px solid #555; padding: 0 5px 6px; }
+      .denominator { padding-top: 6px; }
+      .detail { margin-top: 24px; max-width: 640px; }
+      @media (max-width: 640px) {
+        main { width: min(100% - 28px, 880px); padding-top: 36px; }
+        .back { margin-bottom: 26px; }
+        header { padding-bottom: 52px; }
+        .image-grid { grid-template-columns: 1fr; }
+      }
+      @media print {
+        main { width: 100%; padding: 0; }
+        .back { display: none; }
+        header { padding-bottom: 10px; }
+        h2, h3 { break-after: avoid; }
+        p { orphans: 3; widows: 3; }
+        section { padding: 18px 0; }
+        .image-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 16px; margin-top: 18px; }
+        #single-scale .image-grid, #extra .image-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        figure { break-inside: avoid; page-break-inside: avoid; }
+        .equation { break-inside: avoid; }
+        #single-scale, #pyramid, #extra, #limitations { break-before: page; }
+        a { text-decoration: none; }
+        .detail { max-width: 420px; }
+      }
+    </style>
   </head>
   <body>
-    <p><a href="../coming-soon.html">Project 1 is coming soon.</a></p>
+    <main>
+      <header>
+        <a class="back" href="../">← All projects</a>
+        <h1>Project 1: Images of the Russian Empire</h1>
+        <p class="byline">Ray Sun · CS 180 · Fall 2026</p>
+      </header>
+      <section aria-labelledby="overview-title">
+        <h2 id="overview-title">Reconstructing color</h2>
+        <p>How do you take a color photograph before color film is available? Prokudin-Gorskii's approach was to photograph the same scene three times on a black-and-white glass plate, using blue, green, and red filters. Each exposure captured a different part of the scene's color information. Projecting the three images through matching filters and overlapping them could recreate the scene in color.</p>
+        <p>We can now do the same digitally by treating the scanned exposures as the blue, green, and red channels of an image. But because the pictures were taken one after another, small movements could make the channels misalign. This project finds the shifts needed to line them up and reconstruct the color photograph.</p>
+        <div class="image-grid comparison">
+          <figure>
+            <img src="assets/cathedral-unaligned.jpg" width="390" height="341" alt="Cathedral before alignment, with visible colored fringes around the buildings" />
+            <figcaption><span class="image-title">Before alignment</span>The three channels stacked without shifting.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/cathedral-single.jpg" width="387" height="329" alt="Cathedral after NCC alignment, with the building edges aligned" />
+            <figcaption><span class="image-title">After alignment</span>Green and red shifted to match blue.</figcaption>
+          </figure>
+        </div>
+      </section>
+      <section id="single-scale" aria-labelledby="single-title">
+        <h2 id="single-title">1. Single-scale alignment</h2>
+        <p>I split each scan into its blue, green, and red exposures. Keeping blue fixed, I tried every horizontal and vertical shift from −15 to +15 pixels for green and red.</p>
+        <p>I scored each shift with normalized cross-correlation (NCC) and chose the highest score. NCC subtracts each region's average and divides by its magnitude before comparing the pixels. This makes it less sensitive to overall brightness and contrast differences.</p>
+        <div class="equation" aria-label="NCC of A and B equals the dot product of their mean-subtracted pixels divided by the product of their L2 norms">
+          <span>NCC(A, B) =</span>
+          <span class="fraction"><span class="numerator">(A − Ā) · (B − B̄)</span><span class="denominator">‖A − Ā‖₂ ‖B − B̄‖₂</span></span>
+        </div>
+        <p>Here, A is a region from the shifted channel and B is the matching region in blue. I compared the same interior region for every shift, leaving a 10% border margin and excluding wrapped pixels. This kept the scan borders from driving the alignment.</p>
+        <p>The three JPG results are below. Shifts are (x, y) relative to blue: positive x moves right and positive y moves down.</p>
+        <div class="image-grid">
+          <figure id="cathedral-single">
+            <a class="image-link" href="assets/full/cathedral-single.jpg" aria-label="Open full-resolution Cathedral"><img src="assets/cathedral-single.jpg" width="387" height="329" alt="Cathedral" loading="lazy" /></a>
+            <figcaption><span class="image-title">Cathedral</span><span class="offsets">G (2, 5) · R (3, 12)</span></figcaption>
+          </figure>
+          <figure id="monastery-single">
+            <a class="image-link" href="assets/full/monastery-single.jpg" aria-label="Open full-resolution Monastery"><img src="assets/monastery-single.jpg" width="389" height="335" alt="Monastery" loading="lazy" /></a>
+            <figcaption><span class="image-title">Monastery</span><span class="offsets">G (2, -3) · R (2, 3)</span></figcaption>
+          </figure>
+          <figure id="tobolsk-single">
+            <a class="image-link" href="assets/full/tobolsk-single.jpg" aria-label="Open full-resolution Tobolsk"><img src="assets/tobolsk-single.jpg" width="393" height="335" alt="Tobolsk" loading="lazy" /></a>
+            <figcaption><span class="image-title">Tobolsk</span><span class="offsets">G (3, 3) · R (3, 6)</span></figcaption>
+          </figure>
+        </div>
+      </section>
+      <section id="pyramid" aria-labelledby="pyramid-title">
+        <h2 id="pyramid-title">2. Image pyramid</h2>
+        <p>The TIFF channels are roughly 3,200 × 3,700 pixels, and their displacements can exceed the small search window. A wider exhaustive search at full resolution would require many more comparisons, each over millions of pixels.</p>
+        <p>I used the same NCC search at several scales. Downsampling makes a large displacement small enough to find, and each larger level refines that estimate.</p>
+        <ol>
+          <li>Resize both channels by a factor of ½ with anti-aliasing. Repeat until the smaller dimension is at most 200 pixels.</li>
+          <li>Run the ±15-pixel search on the smallest images.</li>
+          <li>Return to the next larger level and double both components of the estimated shift.</li>
+          <li>Search ±2 pixels around that estimate, then repeat until reaching the original resolution.</li>
+        </ol>
+        <p>I wrote the recursive pyramid and displacement search directly. Scikit-image handles image loading and anti-aliased resizing; NumPy handles the NCC calculations and shifts. The score uses raw channel intensities throughout. Every image uses the same settings.</p>
+        <p>These are all 14 supplied images. The pyramid returned the same offsets as the single-scale search for the three JPGs. Thirteen supplied images aligned visually; Emir's red channel failed and is discussed below.</p>
+        <div class="image-grid">
+          <figure id="cathedral-pyramid">
+            <a class="image-link" href="assets/full/cathedral-pyramid.jpg" aria-label="Open full-resolution Cathedral"><img src="assets/cathedral-pyramid.jpg" width="387" height="329" alt="Cathedral" loading="lazy" /></a>
+            <figcaption><span class="image-title">Cathedral</span><span class="offsets">G (2, 5) · R (3, 12)</span></figcaption>
+          </figure>
+          <figure id="church-pyramid">
+            <a class="image-link" href="assets/full/church-pyramid.jpg" aria-label="Open full-resolution Church"><img src="assets/church-pyramid.jpg" width="1200" height="1040" alt="Church" loading="lazy" /></a>
+            <figcaption><span class="image-title">Church</span><span class="offsets">G (4, 25) · R (-4, 58)</span></figcaption>
+          </figure>
+          <figure id="emir-pyramid">
+            <a class="image-link" href="assets/full/emir-pyramid.jpg" aria-label="Open full-resolution Emir of Bukhara"><img src="assets/emir-pyramid.jpg" width="1200" height="1060" alt="Emir of Bukhara, showing failed red-channel alignment" loading="lazy" /></a>
+            <figcaption><span class="image-title">Emir of Bukhara <span class="failure">· alignment failed</span></span><span class="offsets">G (24, 49) · R (-205, 141)</span></figcaption>
+          </figure>
+          <figure id="harvesters-pyramid">
+            <a class="image-link" href="assets/full/harvesters-pyramid.jpg" aria-label="Open full-resolution Harvesters"><img src="assets/harvesters-pyramid.jpg" width="1200" height="1013" alt="Harvesters" loading="lazy" /></a>
+            <figcaption><span class="image-title">Harvesters</span><span class="offsets">G (17, 60) · R (13, 124)</span></figcaption>
+          </figure>
+          <figure id="icon-pyramid">
+            <a class="image-link" href="assets/full/icon-pyramid.jpg" aria-label="Open full-resolution Icon"><img src="assets/icon-pyramid.jpg" width="1200" height="1018" alt="Icon" loading="lazy" /></a>
+            <figcaption><span class="image-title">Icon</span><span class="offsets">G (17, 41) · R (23, 89)</span></figcaption>
+          </figure>
+          <figure id="ilemselga-pyramid">
+            <a class="image-link" href="assets/full/ilemselga-pyramid.jpg" aria-label="Open full-resolution Ilemselga"><img src="assets/ilemselga-pyramid.jpg" width="1200" height="994" alt="Ilemselga" loading="lazy" /></a>
+            <figcaption><span class="image-title">Ilemselga</span><span class="offsets">G (7, 40) · R (11, 130)</span></figcaption>
+          </figure>
+          <figure id="melons-pyramid">
+            <a class="image-link" href="assets/full/melons-pyramid.jpg" aria-label="Open full-resolution Melons"><img src="assets/melons-pyramid.jpg" width="1200" height="978" alt="Melons" loading="lazy" /></a>
+            <figcaption><span class="image-title">Melons</span><span class="offsets">G (11, 82) · R (13, 178)</span></figcaption>
+          </figure>
+          <figure id="monastery-pyramid">
+            <a class="image-link" href="assets/full/monastery-pyramid.jpg" aria-label="Open full-resolution Monastery"><img src="assets/monastery-pyramid.jpg" width="389" height="335" alt="Monastery" loading="lazy" /></a>
+            <figcaption><span class="image-title">Monastery</span><span class="offsets">G (2, -3) · R (2, 3)</span></figcaption>
+          </figure>
+          <figure id="religous_painting-pyramid">
+            <a class="image-link" href="assets/full/religous_painting-pyramid.jpg" aria-label="Open full-resolution Religious painting"><img src="assets/religous_painting-pyramid.jpg" width="1200" height="1004" alt="Religious painting" loading="lazy" /></a>
+            <figcaption><span class="image-title">Religious painting</span><span class="offsets">G (3, 28) · R (7, 68)</span></figcaption>
+          </figure>
+          <figure id="self_portrait-pyramid">
+            <a class="image-link" href="assets/full/self_portrait-pyramid.jpg" aria-label="Open full-resolution Self portrait"><img src="assets/self_portrait-pyramid.jpg" width="1200" height="978" alt="Self portrait" loading="lazy" /></a>
+            <figcaption><span class="image-title">Self portrait</span><span class="offsets">G (29, 79) · R (37, 176)</span></figcaption>
+          </figure>
+          <figure id="siren-pyramid">
+            <a class="image-link" href="assets/full/siren-pyramid.jpg" aria-label="Open full-resolution Siren"><img src="assets/siren-pyramid.jpg" width="1200" height="998" alt="Siren" loading="lazy" /></a>
+            <figcaption><span class="image-title">Siren</span><span class="offsets">G (-6, 49) · R (-25, 96)</span></figcaption>
+          </figure>
+          <figure id="three_generations-pyramid">
+            <a class="image-link" href="assets/full/three_generations-pyramid.jpg" aria-label="Open full-resolution Three generations"><img src="assets/three_generations-pyramid.jpg" width="1200" height="1004" alt="Three generations" loading="lazy" /></a>
+            <figcaption><span class="image-title">Three generations</span><span class="offsets">G (14, 53) · R (11, 112)</span></figcaption>
+          </figure>
+          <figure id="tobolsk-pyramid">
+            <a class="image-link" href="assets/full/tobolsk-pyramid.jpg" aria-label="Open full-resolution Tobolsk"><img src="assets/tobolsk-pyramid.jpg" width="393" height="335" alt="Tobolsk" loading="lazy" /></a>
+            <figcaption><span class="image-title">Tobolsk</span><span class="offsets">G (3, 3) · R (3, 6)</span></figcaption>
+          </figure>
+          <figure id="wharf-pyramid">
+            <a class="image-link" href="assets/full/wharf-pyramid.jpg" aria-label="Open full-resolution Wharf"><img src="assets/wharf-pyramid.jpg" width="1200" height="1013" alt="Wharf" loading="lazy" /></a>
+            <figcaption><span class="image-title">Wharf</span><span class="offsets">G (-7, 15) · R (-16, 83)</span></figcaption>
+          </figure>
+        </div>
+      </section>
+      <section id="extra" aria-labelledby="extra-title">
+        <h2 id="extra-title">3. Three additional scans</h2>
+        <p>I used three more full-resolution glass-plate negatives from the Library of Congress. These cover a waterfall, a view across Sochi, and the weighing section of a tea factory. Each ran through the same pyramid and NCC pipeline without changing the parameters. The image titles link to their source records.</p>
+        <div class="image-grid">
+          <figure id="kivach_waterfall-pyramid">
+            <a class="image-link" href="assets/full/kivach_waterfall-pyramid.jpg" aria-label="Open full-resolution Kivach waterfall"><img src="assets/kivach_waterfall-pyramid.jpg" width="1200" height="1000" alt="Kivach waterfall" loading="lazy" /></a>
+            <figcaption><span class="image-title"><a href="https://www.loc.gov/item/2018679173/">Kivach waterfall</a></span><span class="offsets">G (9, 34) · R (17, 118)</span></figcaption>
+          </figure>
+          <figure id="sochi_bridge_view-pyramid">
+            <a class="image-link" href="assets/full/sochi_bridge_view-pyramid.jpg" aria-label="Open full-resolution View of Sochi from the bridge"><img src="assets/sochi_bridge_view-pyramid.jpg" width="1200" height="1002" alt="View of Sochi from the bridge" loading="lazy" /></a>
+            <figcaption><span class="image-title"><a href="https://www.loc.gov/item/2018679721/">View of Sochi from the bridge</a></span><span class="offsets">G (12, 64) · R (7, 128)</span></figcaption>
+          </figure>
+          <figure id="tea_weighing-pyramid">
+            <a class="image-link" href="assets/full/tea_weighing-pyramid.jpg" aria-label="Open full-resolution Tea-weighing room, Chakva"><img src="assets/tea_weighing-pyramid.jpg" width="1200" height="999" alt="Tea-weighing room, Chakva" loading="lazy" /></a>
+            <figcaption><span class="image-title"><a href="https://www.loc.gov/item/2018679748/">Tea-weighing room, Chakva</a></span><span class="offsets">G (0, 53) · R (-12, 105)</span></figcaption>
+          </figure>
+        </div>
+        <p>The stationary structures line up in all three results. The waterfall still has colored streaks in the water because it moved between exposures. The Sochi scan also contains damage in the sky. A translation cannot remove either of these effects.</p>
+      </section>
+      <section id="limitations" aria-labelledby="limitations-title">
+        <h2 id="limitations-title">4. What did not align</h2>
+        <p>Emir is the one clear alignment failure. NCC returned G (24, 49) and R (−205, 141), which places the red exposure far from the other two. His robe is bright in the blue exposure and dark in the red exposure. Subtracting each channel's mean does not remove that change in relative brightness, so the correct alignment does not necessarily maximize raw-pixel NCC.</p>
+        <p>The enlarged result makes the failure visible around his face and robe. I kept this result rather than manually setting its displacement.</p>
+        <figure class="detail">
+          <a class="image-link" href="assets/full/emir-pyramid.jpg"><img src="assets/emir-pyramid.jpg" width="1200" height="1060" alt="Failed Emir alignment with a red duplicate of his head and robe" loading="lazy" /></a>
+          <figcaption>Emir, using the same NCC pyramid as every other image.</figcaption>
+        </figure>
+        <h3>Remaining borders and small artifacts</h3>
+        <p>After shifting, I kept the rectangular region shared by all three channels to remove wraparound pixels. This only removes invalid pixels introduced by translation. The original scan borders and damaged areas remain visible. No automatic border detection, contrast adjustment, white balance, or other restoration was applied.</p>
+      </section>
+    </main>
   </body>
 </html>
