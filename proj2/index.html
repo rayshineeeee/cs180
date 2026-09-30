@@ -1,12 +1,1148 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=../coming-soon.html" />
-    <meta name="robots" content="noindex" />
-    <title>Project 2 | CS 180</title>
-  </head>
-  <body>
-    <p><a href="../coming-soon.html">Project 2 is coming soon.</a></p>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="CS 180 Project 2: filters, edges, sharpening, hybrid images, and multiresolution blending." />
+  <title>Project 2: Fun with Filters and Frequencies | Ray Sun</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: light; font-family: "Inconsolata", monospace; color: #171717; background: #f7f7f5; --anchor-offset: 32px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .layout { display: grid; grid-template-columns: 180px minmax(0, 1040px); gap: 112px; max-width: 1436px; margin: 0 auto; padding: 48px 32px 80px; }
+    main { min-width: 0; }
+    main [id] { scroll-margin-top: var(--anchor-offset); }
+    .toc { position: sticky; top: 32px; align-self: start; max-height: calc(100dvh - 64px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+    .toc-title { margin: 0 0 12px; font-size: .875rem; color: #777; }
+    .toc ol { list-style: none; padding: 0; margin: 0; }
+    .toc li { margin: 0; }
+    .toc nav a { display: block; padding: 5px 10px; font-size: .95rem; line-height: 1.25; text-decoration: none; color: #555; border-radius: 3px; }
+    .toc nav > ol > li { margin-bottom: 8px; }
+    .toc .toc-sublist a { padding-left: 24px; font-size: .875rem; color: #737373; }
+    .toc nav a:hover, .toc nav a:focus-visible { background: #eaeae6; color: #171717; }
+    .toc nav a[aria-current="location"] { background: #e4e4df; color: #171717; font-weight: 600; }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: #555; }
+    a:focus-visible { outline: 2px solid #171717; outline-offset: 5px; }
+    .back { display: inline-block; margin: 0 10px 28px; color: #555; font-size: .875rem; }
+    h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.025em; }
+    h1 { font-size: clamp(1.6rem, 2.2vw, 2rem); line-height: 1.2; }
+    h2 { font-size: 1.4rem; } h3 { font-size: 1.1rem; margin-top: 28px; }
+    header { padding-bottom: 24px; }
+    p, li { font-size: .95rem; line-height: 1.55; color: #555; }
+    p { max-width: 850px; margin: 12px 0 0; }
+    section { padding: 28px 0; }
+    .image-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; margin-top: 20px; align-items: start; }
+    .columns-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .columns-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .columns-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .columns-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .text-pair, .code-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; margin-top: 20px; }
+    .explain-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 28px; align-items: start; margin-top: 24px; }
+    .text-pair > *, .code-pair > *, .explain-row > * { min-width: 0; }
+    .text-pair h3, .code-pair h3, .explain-row h3, .explain-row h4 { margin-top: 0; }
+    .explain-row > .image-grid, .explain-row > .table-scroll { margin-top: 0; }
+    .code-pair pre { margin-top: 10px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .78rem; }
+    figure { margin: 0; min-width: 0; }
+    figure a { display: block; }
+    img { display: block; width: 100%; height: auto; max-height: 300px; object-fit: contain; }
+    .kernel { image-rendering: pixelated; }
+    .distance-pair .image-grid { align-items: center; }
+    .distance-pair figure:last-child { text-align: center; }
+    .distance-pair figure:last-child img { width: 40px; height: 40px; margin: 0 auto; }
+    .hybrid-row .image-grid { align-items: center; }
+    .hybrid-row figure:last-child img { width: 40px; height: 40px; margin: 0 auto; }
+    .hybrid-row figure:last-child { text-align: center; }
+    h4 { margin: 24px 0 0; font-size: 1rem; font-weight: 600; }
+    figcaption { color: #555; margin-top: 8px; font-size: .8rem; line-height: 1.4; }
+    figcaption strong { display: block; color: #171717; font-weight: 600; }
+    .image-credit { display: block; margin-top: 4px; font-size: .75rem; color: #737373; }
+    code { font-family: inherit; }
+    pre { padding: 16px; margin: 16px 0; background: #ededeb; overflow-x: auto; font-size: .8rem; line-height: 1.5; }
+    .table-scroll { overflow-x: auto; margin-top: 24px; }
+    table { border-collapse: collapse; width: 100%; font-size: .95rem; line-height: 1.5; }
+    caption { text-align: left; color: #555; margin-bottom: 14px; }
+    th, td { padding: 9px 12px 9px 0; text-align: left; font-weight: 400; }
+    thead th { font-weight: 600; border-bottom: 1px solid #ccc; }
+    td:nth-last-child(-n+2) { font-variant-numeric: tabular-nums; }
+    .equation { font-size: 1.1rem; color: #171717; }
+    @media (min-width: 761px) and (max-width: 1150px) {
+      .layout { grid-template-columns: 160px minmax(0, 1fr); gap: 48px; padding: 40px 20px 72px; }
+      .toc nav a { font-size: .875rem; }
+      .columns-5, .columns-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .code-pair, .explain-row { grid-template-columns: 1fr; gap: 16px; }
+    }
+    @media (max-width: 760px) {
+      :root { --anchor-offset: 112px; }
+      .layout { display: block; padding: 0 14px 64px; }
+      .toc { top: 0; z-index: 2; max-height: none; overflow: visible; margin: 0 -14px 36px; padding: 12px 14px; background: #f7f7f5; }
+      .toc .back { margin: 0 0 8px; font-size: .8rem; }
+      .toc-title { display: none; }
+      .toc nav > ol { display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+      .toc nav > ol > li { flex: 0 0 auto; margin: 0; }
+      .toc nav a { font-size: .875rem; padding: 8px 10px; white-space: nowrap; }
+      .toc .toc-sublist { display: none; }
+      .code-pair, .text-pair, .explain-row { grid-template-columns: 1fr; gap: 20px; }
+      .columns-4, .columns-5, .columns-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .image-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .columns-3 { grid-template-columns: 1fr; }
+      pre { padding: 14px; }
+    }
+    @media print {
+      :root { font-size: 14px; background: white; }
+      .layout { display: block; padding: 0; max-width: none; }
+      .toc { display: none; }
+      section { padding: 20px 0; }
+      .columns-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .columns-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .columns-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .columns-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .text-pair, .code-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+      .explain-row { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 20px; }
+      figure, pre, table, .code-pair, .explain-row { break-inside: avoid; }
+      h2, h3, h4 { break-after: avoid; }
+      pre { white-space: pre-wrap; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+<aside class="toc">
+  <a class="back" href="../">← All projects</a>
+  <p class="toc-title">Contents</p>
+  <nav aria-label="Table of contents"><ol><li><a href="#convolution">1.1 Convolution</a></li><li><a href="#differences">1.2 Finite differences</a></li><li><a href="#gaussian">1.3 Gaussian derivatives</a></li><li><a href="#sharpening">2.1 Sharpening</a><ol class="toc-sublist"><li><a href="#sharpen-taj">Taj Mahal</a></li><li><a href="#sharpen-street">Street photograph</a></li><li><a href="#resharpening">Blur &amp; resharpen</a></li></ol></li><li><a href="#hybrids">2.2 Hybrid images</a><ol class="toc-sublist"><li><a href="#kendrick-drake">Kendrick + Drake</a></li><li><a href="#kd-frequency-splits">Frequency split</a></li><li><a href="#kd-reverse">Reverse direction</a></li><li><a href="#kd-fourier">Fourier analysis</a></li><li><a href="#hybrid-derek-nutmeg">Derek + Nutmeg</a></li><li><a href="#hybrid-outdoor-indoor">Outdoor + indoor</a></li></ol></li><li><a href="#stacks">2.3 Image stacks</a><ol class="toc-sublist"><li><a href="#gaussian-levels">Gaussian levels</a></li><li><a href="#laplacian-levels">Laplacian levels</a></li><li><a href="#figure-342">Figure 3.42</a></li><li><a href="#stack-basketball-soccer">Basketball + soccer</a></li><li><a href="#stack-golden-gate">Golden Gate</a></li></ol></li><li><a href="#blending">2.4 Blending</a><ol class="toc-sublist"><li><a href="#blend-oraple">Apple + orange</a></li><li><a href="#mask-levels">Mask progression</a></li><li><a href="#blend-basketball-soccer">Basketball + soccer</a></li><li><a href="#blend-golden-gate">Golden Gate</a></li><li><a href="#bridge-bands">Bridge frequency bands</a></li></ol></li><li><a href="#lesson">Lesson I learned</a></li></ol></nav>
+</aside>
+<main>
+  <header>
+    <h1>Project 2: Fun with Filters and Frequencies</h1>
+    <p>Ray Sun · CS 180 · Fall 2026</p>
+    <p>Part 1 explores blur, derivatives, and edges. Part 2 uses spatial frequencies to sharpen photographs, create hybrid images, and blend at multiple scales.</p>
+  </header>
+
+  <section id="convolution" aria-labelledby="convolution-title">
+    <h2 id="convolution-title">1.1 · Convolution from scratch</h2>
+    <p>Both implementations flip the kernel, zero-pad the image, and return the same input dimensions. Four loops visit each pixel and filter weight; two loops let NumPy compute the inner weighted sum.</p>
+    <div class="code-pair">
+      <div><h3>Four loops</h3><pre><code>def convolve_four_loops(image, kernel):
+    &quot;&quot;&quot;Zero-filled &#x27;same&#x27; convolution, with one loop per array dimension.&quot;&quot;&quot;
+    image, padded, flipped = prepare(image, kernel)
+    height, width = image.shape
+    kh, kw = flipped.shape
+    output = np.zeros_like(image)
+    for y in range(height):
+        for x in range(width):
+            for ky in range(kh):
+                for kx in range(kw):
+                    output[y, x] += padded[y + ky, x + kx] * flipped[ky, kx]
+    return output</code></pre></div>
+      <div><h3>Two loops</h3><pre><code>def convolve_two_loops(image, kernel):
+    &quot;&quot;&quot;Same operation, with the kernel&#x27;s multiply-and-sum handled by NumPy.&quot;&quot;&quot;
+    image, padded, flipped = prepare(image, kernel)
+    height, width = image.shape
+    kh, kw = flipped.shape
+    output = np.zeros_like(image)
+    for y in range(height):
+        for x in range(width):
+            patch = padded[y:y + kh, x:x + kw]
+            output[y, x] = np.sum(patch * flipped)
+    return output</code></pre></div>
+    </div>
+    <div class="explain-row">
+      <div><h3>Shared padding</h3><p>Float64 preserves negative derivatives. Zero padding treats the exterior as black, darkening the blurred border. Even-sized filters get one extra zero on the top/left to match SciPy’s <code>same</code> convention.</p></div>
+      <pre><code>def prepare(image, kernel):
+    image = np.asarray(image, dtype=np.float64)
+    kernel = np.asarray(kernel, dtype=np.float64)
+    if image.ndim != 2 or kernel.ndim != 2 or not image.size or not kernel.size:
+        raise ValueError(&quot;image and kernel must be nonempty 2D arrays&quot;)
+    kh, kw = kernel.shape
+    # Even kernels need the extra zero on the top/left to match SciPy&#x27;s &#x27;same&#x27;.
+    padded = np.pad(image, ((kh // 2, (kh - 1) // 2),
+                            (kw // 2, (kw - 1) // 2)), mode=&quot;constant&quot;)
+    return image, padded, kernel[::-1, ::-1]</code></pre>
+    </div>
+    <h3>Averaging and differentiating a portrait</h3>
+    <p>The grayscale portrait is 248 × 256. The box filter averages 81 neighbors; Dx = [1, −1] and Dy = Dxᵀ measure horizontal and vertical changes. Gray is zero in both derivative displays.</p>
+    <pre><code>box = np.ones((9, 9)) / 81
+DX = np.array([[1.0, -1.0]]); DY = DX.T
+outputs = [convolve_two_loops(portrait, k) for k in (box, DX, DY)]</code></pre>
+    <div class="image-grid columns-4"><figure>
+          <a href="assets/portrait.png" aria-label="Open Grayscale portrait">
+            <img src="assets/portrait.png" width="248" height="256" alt="Grayscale portrait" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Grayscale portrait</strong>Resized to 248 × 256 for the loop experiments.</figcaption>
+        </figure><figure>
+          <a href="assets/portrait-box.png" aria-label="Open 9 × 9 box blur">
+            <img src="assets/portrait-box.png" width="248" height="256" alt="9 × 9 box blur" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>9 × 9 box blur</strong>All 81 weights are 1/81. Fine details soften; zero padding darkens the border.</figcaption>
+        </figure><figure>
+          <a href="assets/portrait-dx.png" aria-label="Open Portrait · x derivative">
+            <img src="assets/portrait-dx.png" width="248" height="256" alt="Portrait · x derivative" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Portrait · x derivative</strong>Intensity changes across columns; vertical contours stand out.</figcaption>
+        </figure><figure>
+          <a href="assets/portrait-dy.png" aria-label="Open Portrait · y derivative">
+            <img src="assets/portrait-dy.png" width="248" height="256" alt="Portrait · y derivative" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Portrait · y derivative</strong>Intensity changes across rows; horizontal contours stand out.</figcaption>
+        </figure></div>
+    <div class="explain-row" id="scipy-comparison">
+    <div><h3>Comparison with SciPy</h3>
+    <p>All methods agree within 2.22e-15. SciPy is fastest. NumPy speeds up the box filter, but per-pixel overhead makes two loops less useful for tiny derivative filters.</p></div>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Convolution benchmark table">
+      <table>
+        <caption>Median time (ms), 3 runs. Same image, filters, and zero padding; file I/O excluded.</caption>
+        <thead><tr><th scope="col">Filter</th><th scope="col">Four loops</th><th scope="col">Two loops</th><th scope="col">SciPy</th></tr></thead>
+        <tbody><tr><th scope="row">9 × 9 box</th><td>1284.11</td><td>99.88</td><td>5.45</td></tr><tr><th scope="row">D_x</th><td>37.43</td><td>90.22</td><td>0.50</td></tr><tr><th scope="row">D_y</th><td>40.48</td><td>93.15</td><td>0.65</td></tr></tbody>
+      </table>
+    </div>
+    </div>
+  </section>
+
+  <section id="differences" aria-labelledby="differences-title">
+    <h2 id="differences-title">1.2 · Finite difference operator</h2>
+    <p>Convolving with Dx = [1, −1] measures I[y, x] − I[y, x−1]; Dy is its transpose. A large response means intensity changes quickly in that direction. Combining the two derivatives gives a direction-independent edge strength.</p>
+    <p class="equation">magnitude = √(gx² + gy²) &nbsp; · &nbsp; edge = magnitude &gt; threshold</p>
+    <pre><code>gx = convolve2d(image, DX, mode=&quot;same&quot;, boundary=&quot;fill&quot;, fillvalue=0)
+gy = convolve2d(image, DY, mode=&quot;same&quot;, boundary=&quot;fill&quot;, fillvalue=0)
+magnitude = np.hypot(gx, gy)
+edges = magnitude &gt; 0.12</code></pre>
+    <div class="image-grid columns-4"><figure>
+          <a href="assets/raw-dx.png" aria-label="Open Cameraman · x derivative">
+            <img src="assets/raw-dx.png" width="512" height="512" alt="Cameraman · x derivative" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Cameraman · x derivative</strong></figcaption>
+        </figure><figure>
+          <a href="assets/raw-dy.png" aria-label="Open Cameraman · y derivative">
+            <img src="assets/raw-dy.png" width="512" height="512" alt="Cameraman · y derivative" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Cameraman · y derivative</strong></figcaption>
+        </figure><figure>
+          <a href="assets/raw-magnitude.png" aria-label="Open Gradient magnitude">
+            <img src="assets/raw-magnitude.png" width="512" height="512" alt="Gradient magnitude" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Gradient magnitude</strong>sqrt(gx² + gy²), combining both directions.</figcaption>
+        </figure><figure>
+          <a href="assets/raw-edges-0.12.png" aria-label="Open Selected edges · threshold 0.12">
+            <img src="assets/raw-edges-0.12.png" width="512" height="512" alt="Selected edges · threshold 0.12" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Selected edges · threshold 0.12</strong>White means the gradient magnitude exceeds the threshold.</figcaption>
+        </figure></div>
+    <p>The x/y displays share a symmetric ±0.969 range. All cameraman magnitude displays on this page share a range from 0 to 1.109, the raw magnitude maximum. Thresholds operate on the original float values, before display scaling.</p>
+    <h3>Choosing the threshold</h3>
+    <div class="image-grid columns-3"><figure>
+          <a href="assets/raw-edges-0.08.png" aria-label="Open Threshold 0.08">
+            <img src="assets/raw-edges-0.08.png" width="512" height="512" alt="Threshold 0.08" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Threshold 0.08</strong></figcaption>
+        </figure><figure>
+          <a href="assets/raw-edges-0.12.png" aria-label="Open Threshold 0.12">
+            <img src="assets/raw-edges-0.12.png" width="512" height="512" alt="Threshold 0.12" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Threshold 0.12</strong>Selected</figcaption>
+        </figure><figure>
+          <a href="assets/raw-edges-0.18.png" aria-label="Open Threshold 0.18">
+            <img src="assets/raw-edges-0.18.png" width="512" height="512" alt="Threshold 0.18" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Threshold 0.18</strong></figcaption>
+        </figure></div>
+    <p>At 0.08, more weak contours survive, but so does dense ground texture. At 0.18, much of that texture disappears along with weaker parts of the subject and background. A threshold of 0.12 retains the main silhouette, camera, and tripod while removing some weaker responses. It still leaves visible ground texture; thresholding alone cannot distinguish texture from object boundaries.</p>
+    <p>Zero padding also makes a bright image boundary look like an edge against a black exterior. Those border responses remain visible here so the padding convention is explicit.</p>
+  </section>
+
+  <section id="gaussian" aria-labelledby="gaussian-title">
+    <h2 id="gaussian-title">1.3 · Derivative of Gaussian</h2>
+    <p>A Gaussian blur suppresses small intensity fluctuations before differentiation. The Gaussian uses a 9 × 9 support and σ = 1.5 pixels. OpenCV constructs a normalized 1D Gaussian; its outer product forms the 2D filter.</p>
+    <pre><code>column = cv2.getGaussianKernel(9, 1.5)
+gaussian = column @ column.T
+dog_x = convolve2d(gaussian, DX, mode=&quot;full&quot;)
+dog_y = convolve2d(gaussian, DY, mode=&quot;full&quot;)</code></pre>
+    <div class="image-grid columns-2"><figure>
+          <a href="assets/cameraman.png" aria-label="Open Original cameraman">
+            <img src="assets/cameraman.png" width="512" height="512" alt="Original cameraman" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Original cameraman</strong>512 × 512; intensities scaled to [0, 1].</figcaption>
+        </figure><figure>
+          <a href="assets/blurred.png" aria-label="Open Gaussian blur">
+            <img src="assets/blurred.png" width="512" height="512" alt="Gaussian blur" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Gaussian blur</strong>Small texture variations are averaged before differentiation.</figcaption>
+        </figure></div>
+    <div class="image-grid columns-2"><figure>
+          <a href="assets/raw-magnitude.png" aria-label="Open Finite-difference magnitude">
+            <img src="assets/raw-magnitude.png" width="512" height="512" alt="Finite-difference magnitude" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Finite-difference magnitude</strong>Fine grass and background texture produce many responses.</figcaption>
+        </figure><figure>
+          <a href="assets/sequential-magnitude.png" aria-label="Open Smoothed magnitude">
+            <img src="assets/sequential-magnitude.png" width="512" height="512" alt="Smoothed magnitude" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Smoothed magnitude</strong>Smoothing lowers and spreads the response around edges.</figcaption>
+        </figure></div>
+    <p>After smoothing, the main outline is more continuous and the fine ground texture is reduced. The magnitude is lower and the transitions are wider. Because smoothing reduces edge strength, the raw threshold of 0.12 would discard useful contours; the smoothed result uses 0.04.</p>
+    <div class="image-grid columns-3"><figure>
+          <a href="assets/smooth-edges-0.02.png" aria-label="Open Threshold 0.02">
+            <img src="assets/smooth-edges-0.02.png" width="512" height="512" alt="Threshold 0.02" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Threshold 0.02</strong></figcaption>
+        </figure><figure>
+          <a href="assets/smooth-edges-0.04.png" aria-label="Open Threshold 0.04">
+            <img src="assets/smooth-edges-0.04.png" width="512" height="512" alt="Threshold 0.04" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Threshold 0.04</strong>Selected</figcaption>
+        </figure><figure>
+          <a href="assets/smooth-edges-0.06.png" aria-label="Open Threshold 0.06">
+            <img src="assets/smooth-edges-0.06.png" width="512" height="512" alt="Threshold 0.06" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Threshold 0.06</strong></figcaption>
+        </figure></div>
+    <p>At 0.02, more weak background and ground structure remains. At 0.06, fewer distracting responses survive, but weaker contours break apart. The selected 0.04 keeps the subject and camera structure while reducing the fine texture seen with finite differences alone. The lost small details are the tradeoff for smoother edges.</p>
+    <h3>The filters themselves</h3>
+    <div class="image-grid columns-3"><figure>
+          <a href="assets/gaussian.png" aria-label="Open Gaussian G · 9 × 9">
+            <img src="assets/gaussian.png" width="9" height="9" alt="Gaussian G · 9 × 9" loading="lazy" class="kernel" />
+          </a>
+          <figcaption><strong>Gaussian G · 9 × 9</strong>σ = 1.5 pixels; weights sum to 1.</figcaption>
+        </figure><figure>
+          <a href="assets/dog_x.png" aria-label="Open G * Dx · 9 × 10">
+            <img src="assets/dog_x.png" width="10" height="9" alt="G * Dx · 9 × 10" loading="lazy" class="kernel" />
+          </a>
+          <figcaption><strong>G * Dx · 9 × 10</strong>Horizontal difference of the Gaussian.</figcaption>
+        </figure><figure>
+          <a href="assets/dog_y.png" aria-label="Open G * Dy · 10 × 9">
+            <img src="assets/dog_y.png" width="9" height="10" alt="G * Dy · 10 × 9" loading="lazy" class="kernel" />
+          </a>
+          <figcaption><strong>G * Dy · 10 × 9</strong>Vertical difference of the Gaussian.</figcaption>
+        </figure></div>
+    <p>The Gaussian is shown from zero (black) to its maximum (white). Both DoG displays use the same symmetric range, ±0.02768, with zero in middle gray. Their positive and negative lobes measure change after local averaging. Full convolution preserves the complete filter support, including the extra column or row introduced by the two-tap derivative.</p>
+    <h3>Two convolutions or one?</h3>
+    <p class="equation">(I * G) * Dx = I * (G * Dx)</p>
+    <p>Associativity lets the derivative be applied to the Gaussian first. Once the DoG kernels are prepared, each derivative needs just one convolution with the image. The comparison below uses the same input, kernels, zero extension, final crop, and threshold.</p>
+    <div class="image-grid columns-4"><figure>
+          <a href="assets/sequential-magnitude.png" aria-label="Open Blur, then differentiate">
+            <img src="assets/sequential-magnitude.png" width="512" height="512" alt="Blur, then differentiate" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blur, then differentiate</strong>Two convolutions per direction, retaining the intermediate halo.</figcaption>
+        </figure><figure>
+          <a href="assets/combined-magnitude.png" aria-label="Open Differentiate the Gaussian, then filter">
+            <img src="assets/combined-magnitude.png" width="512" height="512" alt="Differentiate the Gaussian, then filter" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Differentiate the Gaussian, then filter</strong>One image convolution per direction.</figcaption>
+        </figure><figure>
+          <a href="assets/sequential-edges.png" aria-label="Open Two-step edges · threshold 0.04">
+            <img src="assets/sequential-edges.png" width="512" height="512" alt="Two-step edges · threshold 0.04" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Two-step edges · threshold 0.04</strong></figcaption>
+        </figure><figure>
+          <a href="assets/combined-edges.png" aria-label="Open DoG edges · threshold 0.04">
+            <img src="assets/combined-edges.png" width="512" height="512" alt="DoG edges · threshold 0.04" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>DoG edges · threshold 0.04</strong></figcaption>
+        </figure></div>
+    <div class="text-pair" id="dog-comparison-notes">
+      <div><h3>Agreement</h3><p>Maximum magnitude difference: 8.26e-16. The binary maps differ at 0 pixels.</p></div>
+      <div><h3>Boundary handling</h3><p>Both routes keep the full convolution and crop only once at the end. Cropping between filters would change the padding and introduce border differences.</p></div>
+    </div>
+  </section>
+
+
+  <section id="sharpening" aria-labelledby="sharpening-title">
+    <h2 id="sharpening-title">2.1 · Image sharpening</h2>
+    <div class="text-pair">
+      <div><p>A Gaussian blur keeps low frequencies. Subtracting it leaves fine detail; adding α times that detail makes edges stronger.</p>
+      <p class="equation">sharp = I + α(I − G * I)</p></div>
+      <div><p>Combining the steps gives one unsharp mask filter, with δ equal to an impulse:</p>
+      <p class="equation">kernel = (1 + α)δ − αG</p></div>
+    </div>
+    <h3 id="sharpen-taj">Taj Mahal</h3>
+          <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-taj-original.png" aria-label="Open Original">
+            <img src="assets/p2-taj-original.png" width="300" height="300" alt="Original" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Original</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-taj-low.png" aria-label="Open Blurred · σ = 1.5">
+            <img src="assets/p2-taj-low.png" width="300" height="300" alt="Blurred · σ = 1.5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blurred · σ = 1.5</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-taj-high.png" aria-label="Open High frequencies · gray = zero">
+            <img src="assets/p2-taj-high.png" width="300" height="300" alt="High frequencies · gray = zero" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>High frequencies · gray = zero</strong></figcaption>
+        </figure></div>
+          <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-taj-sharp-0.5.png" aria-label="Open Sharpened · α = 0.5">
+            <img src="assets/p2-taj-sharp-0.5.png" width="300" height="300" alt="Sharpened · α = 0.5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Sharpened · α = 0.5</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-taj-sharp-1.png" aria-label="Open Sharpened · α = 1">
+            <img src="assets/p2-taj-sharp-1.png" width="300" height="300" alt="Sharpened · α = 1" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Sharpened · α = 1</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-taj-sharp-2.png" aria-label="Open Sharpened · α = 2">
+            <img src="assets/p2-taj-sharp-2.png" width="300" height="300" alt="Sharpened · α = 2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Sharpened · α = 2</strong></figcaption>
+        </figure></div><h3 id="sharpen-street">Telegraph Avenue</h3>
+          <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-street-original.png" aria-label="Open Original">
+            <img src="assets/p2-street-original.png" width="384" height="512" alt="Original" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Original</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-street-low.png" aria-label="Open Blurred · σ = 1.5">
+            <img src="assets/p2-street-low.png" width="384" height="512" alt="Blurred · σ = 1.5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blurred · σ = 1.5</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-street-high.png" aria-label="Open High frequencies · gray = zero">
+            <img src="assets/p2-street-high.png" width="384" height="512" alt="High frequencies · gray = zero" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>High frequencies · gray = zero</strong></figcaption>
+        </figure></div>
+          <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-street-sharp-0.5.png" aria-label="Open Sharpened · α = 0.5">
+            <img src="assets/p2-street-sharp-0.5.png" width="384" height="512" alt="Sharpened · α = 0.5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Sharpened · α = 0.5</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-street-sharp-1.png" aria-label="Open Sharpened · α = 1">
+            <img src="assets/p2-street-sharp-1.png" width="384" height="512" alt="Sharpened · α = 1" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Sharpened · α = 1</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-street-sharp-2.png" aria-label="Open Sharpened · α = 2">
+            <img src="assets/p2-street-sharp-2.png" width="384" height="512" alt="Sharpened · α = 2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Sharpened · α = 2</strong></figcaption>
+        </figure></div>
+    <p>α = 0.5 is subtle; α = 1 strengthens stonework and bricks; α = 2 adds visible halos and emphasizes noise. The single-filter and blur/subtract/add implementations agree within 1.33e-15.</p>
+    <h3 id="resharpening">Blur, then sharpen</h3>
+    <p>The street photo is blurred at σ = 2, then sharpened with σ = 2 and α = 1.5. Edges regain contrast, but fine detail stays soft. MSE falls from 0.00919 to 0.00719; sharpening does not fully undo the blur.</p>
+    <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-restore-original.png" aria-label="Open Sharp reference">
+            <img src="assets/p2-restore-original.png" width="384" height="512" alt="Sharp reference" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Sharp reference</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-restore-blurred.png" aria-label="Open Blurred">
+            <img src="assets/p2-restore-blurred.png" width="384" height="512" alt="Blurred" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blurred</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-restore-sharpened.png" aria-label="Open Resharpened">
+            <img src="assets/p2-restore-sharpened.png" width="384" height="512" alt="Resharpened" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Resharpened</strong></figcaption>
+        </figure></div>
+    <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-restore-crop-original.png" aria-label="Open Reference crop">
+            <img src="assets/p2-restore-crop-original.png" width="170" height="140" alt="Reference crop" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Reference crop</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-restore-crop-blurred.png" aria-label="Open Blurred crop">
+            <img src="assets/p2-restore-crop-blurred.png" width="170" height="140" alt="Blurred crop" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blurred crop</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-restore-crop-sharpened.png" aria-label="Open Resharpened crop">
+            <img src="assets/p2-restore-crop-sharpened.png" width="170" height="140" alt="Resharpened crop" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Resharpened crop</strong></figcaption>
+        </figure></div>
+  </section>
+
+  <section id="hybrids" aria-labelledby="hybrids-title">
+    <h2 id="hybrids-title">2.2 · Hybrid images</h2>
+    <p>Combine the low frequencies of one image with the high frequencies of another. Fine detail dominates nearby; the broad shapes emerge farther away.</p>
+    <div id="kendrick-drake">
+    <h3>Kendrick + Drake</h3>
+    <p>Drake supplies the low frequencies and Kendrick the high frequencies. Kendrick's fine features stand out nearby; Drake's broad face appears in the small view. Different facial proportions leave some overlapping mouth and cheek contours.</p>
+    <div class="distance-pair"><div class="image-grid columns-2"><figure>
+          <a href="assets/p2-kd-hybrid.png" aria-label="Open Kendrick nearby / Drake farther away · near">
+            <img src="assets/p2-kd-hybrid.png" width="400" height="400" alt="Kendrick nearby / Drake farther away · near" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Kendrick nearby / Drake farther away · near</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-hybrid-far.png" aria-label="Open Kendrick nearby / Drake farther away · far">
+            <img src="assets/p2-kd-hybrid-far.png" width="40" height="40" alt="Kendrick nearby / Drake farther away · far" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Kendrick nearby / Drake farther away · far</strong>Same result reduced to 40 × 40.</figcaption>
+        </figure></div></div>
+    <h4 id="kd-alignment">Sources and alignment</h4>
+    <div class="image-grid columns-4"><figure>
+          <a href="assets/p2-kd-source-drake-bw.png" aria-label="Open Drake · original">
+            <img src="assets/p2-kd-source-drake-bw.png" width="512" height="392" alt="Drake · original" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Drake · original</strong><small class="image-credit"><a href="https://www.zachgold.com/portraits">Zach Gold</a></small></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-source-kendrick.png" aria-label="Open Kendrick · original">
+            <img src="assets/p2-kd-source-kendrick.png" width="512" height="512" alt="Kendrick · original" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Kendrick · original</strong><small class="image-credit"><a href="https://www.musicthatdoesntsuckmonthly.com/playlist/2016/11/08/kendrick-lamar-untitled-06-06302014">Kendrick portrait</a></small></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-aligned-drake-bw.png" aria-label="Open Drake · aligned">
+            <img src="assets/p2-kd-aligned-drake-bw.png" width="400" height="400" alt="Drake · aligned" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Drake · aligned</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-aligned-kendrick.png" aria-label="Open Kendrick · aligned">
+            <img src="assets/p2-kd-aligned-kendrick.png" width="400" height="400" alt="Kendrick · aligned" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Kendrick · aligned</strong></figcaption>
+        </figure></div>
+    <p>Rotation, uniform scale, and translation align the eyes at (120, 150) and (280, 150) on a 400 × 400 grayscale canvas. Both aligned images stay within their source photographs.</p>
+    <div class="explain-row">
+      <div><h4>Filtering</h4><pre><code>low = blur(drake, 14)
+high = kendrick - blur(kendrick, 4)
+hybrid = low + 1.5 * high</code></pre></div>
+      <div class="image-grid columns-2"><figure>
+          <a href="assets/p2-kd-low.png" aria-label="Open Low-pass Drake · σ = 14">
+            <img src="assets/p2-kd-low.png" width="400" height="400" alt="Low-pass Drake · σ = 14" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Low-pass Drake · σ = 14</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-high.png" aria-label="Open High-pass Kendrick · σ = 4">
+            <img src="assets/p2-kd-high.png" width="400" height="400" alt="High-pass Kendrick · σ = 4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>High-pass Kendrick · σ = 4</strong>Before gain; gray is zero, range ±0.577.</figcaption>
+        </figure></div>
+    </div>
+    <div class="explain-row" id="kd-frequency-splits">
+      <div><h4>Choosing the frequency split</h4><p>Gain stays at 1.5. The 6/2 split leaves more Drake detail nearby. The selected 14/4 split makes Kendrick clearer, at the cost of more ghosting.</p></div>
+      <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-kd-sweep-6-2.png" aria-label="Open σ = 6 / 2">
+            <img src="assets/p2-kd-sweep-6-2.png" width="400" height="400" alt="σ = 6 / 2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 6 / 2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-sweep-10-3.png" aria-label="Open σ = 10 / 3">
+            <img src="assets/p2-kd-sweep-10-3.png" width="400" height="400" alt="σ = 10 / 3" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 10 / 3</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-sweep-14-4.png" aria-label="Open σ = 14 / 4 · selected">
+            <img src="assets/p2-kd-sweep-14-4.png" width="400" height="400" alt="σ = 14 / 4 · selected" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 14 / 4 · selected</strong></figcaption>
+        </figure></div>
+    </div>
+    <div class="explain-row" id="kd-reverse">
+      <div><h4>Reversing the same pair</h4><p>Swap the same two photographs: Kendrick supplies low frequencies and Drake high frequencies. Alignment, σ = 14/4, and gain = 1.5 stay fixed.</p></div>
+      <div class="distance-pair"><div class="image-grid columns-2"><figure>
+          <a href="assets/p2-kd-reverse.png" aria-label="Open Drake nearby / Kendrick farther away · near">
+            <img src="assets/p2-kd-reverse.png" width="400" height="400" alt="Drake nearby / Kendrick farther away · near" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Drake nearby / Kendrick farther away · near</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-reverse-far.png" aria-label="Open Drake nearby / Kendrick farther away · far">
+            <img src="assets/p2-kd-reverse-far.png" width="40" height="40" alt="Drake nearby / Kendrick farther away · far" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Drake nearby / Kendrick farther away · far</strong>Same result reduced to 40 × 40.</figcaption>
+        </figure></div></div>
+    </div>
+    <h4 id="kd-fourier">Fourier analysis</h4>
+    <p>Log-magnitude spectra share the same scale. Low-pass energy concentrates near the center; high-pass filtering suppresses that center. The hybrid combines both frequency ranges.</p>
+    <div class="image-grid columns-5"><figure>
+          <a href="assets/p2-kd-fft-input-low.png" aria-label="Open Drake input">
+            <img src="assets/p2-kd-fft-input-low.png" width="400" height="400" alt="Drake input" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Drake input</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-fft-input-high.png" aria-label="Open Kendrick input">
+            <img src="assets/p2-kd-fft-input-high.png" width="400" height="400" alt="Kendrick input" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Kendrick input</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-fft-low.png" aria-label="Open Low-pass Drake">
+            <img src="assets/p2-kd-fft-low.png" width="400" height="400" alt="Low-pass Drake" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Low-pass Drake</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-fft-high.png" aria-label="Open High-pass × 1.5">
+            <img src="assets/p2-kd-fft-high.png" width="400" height="400" alt="High-pass × 1.5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>High-pass × 1.5</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-kd-fft-hybrid.png" aria-label="Open Hybrid">
+            <img src="assets/p2-kd-fft-hybrid.png" width="400" height="400" alt="Hybrid" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Hybrid</strong></figcaption>
+        </figure></div>
+    <p>Computed with <code>log1p(abs(fftshift(fft2(image))))</code> on unclipped arrays.</p>
+    </div>
+    <p>The other pairs also use grayscale and eye alignment on a 400 × 400 canvas. Nutmeg needs reflected border pixels (3.9% of the canvas). Small views are the same results reduced to 40 pixels.</p>
+    <h3 id="hybrid-derek-nutmeg">Derek + Nutmeg</h3>
+        <p>σ low/high = 7/4; gain = 1. Nutmeg's fur and eyes dominate nearby; Derek's face becomes clearer at a distance. The ears still leave some ghosting.</p>
+        <div class="hybrid-row"><div class="image-grid columns-4"><figure>
+          <a href="assets/p2-source-derek.png" aria-label="Open Derek">
+            <img src="assets/p2-source-derek.png" width="366" height="512" alt="Derek" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Derek</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-source-nutmeg.png" aria-label="Open Nutmeg">
+            <img src="assets/p2-source-nutmeg.png" width="512" height="384" alt="Nutmeg" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Nutmeg</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-hybrid-derek-nutmeg.png" aria-label="Open Hybrid · near">
+            <img src="assets/p2-hybrid-derek-nutmeg.png" width="400" height="400" alt="Hybrid · near" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Hybrid · near</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-hybrid-derek-nutmeg-far.png" aria-label="Open Hybrid · far">
+            <img src="assets/p2-hybrid-derek-nutmeg-far.png" width="40" height="40" alt="Hybrid · far" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Hybrid · far</strong></figcaption>
+        </figure></div></div><h3 id="hybrid-outdoor-indoor">Outdoor smile + indoor portrait</h3>
+        <p>σ low/high = 6/3; gain = 1. Glasses and the neutral expression dominate nearby; the outdoor smile appears farther away. Different head poses leave some overlapping contours.</p>
+        <div class="hybrid-row"><div class="image-grid columns-4"><figure>
+          <a href="assets/p2-source-outdoor.png" aria-label="Open Outdoor portrait">
+            <img src="assets/p2-source-outdoor.png" width="497" height="512" alt="Outdoor portrait" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Outdoor portrait</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-source-indoor.png" aria-label="Open Indoor portrait">
+            <img src="assets/p2-source-indoor.png" width="384" height="512" alt="Indoor portrait" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Indoor portrait</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-hybrid-outdoor-indoor.png" aria-label="Open Hybrid · near">
+            <img src="assets/p2-hybrid-outdoor-indoor.png" width="400" height="400" alt="Hybrid · near" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Hybrid · near</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-hybrid-outdoor-indoor-far.png" aria-label="Open Hybrid · far">
+            <img src="assets/p2-hybrid-outdoor-indoor-far.png" width="40" height="40" alt="Hybrid · far" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Hybrid · far</strong></figcaption>
+        </figure></div></div>
+  </section>
+
+  <section id="stacks" aria-labelledby="stacks-title">
+    <h2 id="stacks-title">2.3 · Gaussian and Laplacian stacks</h2>
+    <div class="text-pair">
+      <div><h3>Gaussian stack</h3><p>Blur the original at σ = 2, 4, 8, 16, and 32. G0 is the input. Every level keeps the same resolution, with no downsampling or built-in pyramid functions.</p></div>
+      <div><h3>Laplacian stack</h3><p>Lk = Gk − Gk+1. The last level keeps G5. Adding all six levels reconstructs the original, including its broad color and brightness.</p></div>
+    </div>
+    <h3 id="gaussian-levels">Gaussian levels</h3>
+    <h4>Apple</h4><div class="image-grid columns-6"><figure>
+          <a href="assets/p2-stack-a-gaussian-0.png" aria-label="Open G0 · σ = 0">
+            <img src="assets/p2-stack-a-gaussian-0.png" width="300" height="300" alt="G0 · σ = 0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G0 · σ = 0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-gaussian-1.png" aria-label="Open G1 · σ = 2">
+            <img src="assets/p2-stack-a-gaussian-1.png" width="300" height="300" alt="G1 · σ = 2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G1 · σ = 2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-gaussian-2.png" aria-label="Open G2 · σ = 4">
+            <img src="assets/p2-stack-a-gaussian-2.png" width="300" height="300" alt="G2 · σ = 4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G2 · σ = 4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-gaussian-3.png" aria-label="Open G3 · σ = 8">
+            <img src="assets/p2-stack-a-gaussian-3.png" width="300" height="300" alt="G3 · σ = 8" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G3 · σ = 8</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-gaussian-4.png" aria-label="Open G4 · σ = 16">
+            <img src="assets/p2-stack-a-gaussian-4.png" width="300" height="300" alt="G4 · σ = 16" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G4 · σ = 16</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-gaussian-5.png" aria-label="Open G5 · σ = 32">
+            <img src="assets/p2-stack-a-gaussian-5.png" width="300" height="300" alt="G5 · σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G5 · σ = 32</strong></figcaption>
+        </figure></div><h4>Orange</h4><div class="image-grid columns-6"><figure>
+          <a href="assets/p2-stack-b-gaussian-0.png" aria-label="Open G0 · σ = 0">
+            <img src="assets/p2-stack-b-gaussian-0.png" width="300" height="300" alt="G0 · σ = 0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G0 · σ = 0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-gaussian-1.png" aria-label="Open G1 · σ = 2">
+            <img src="assets/p2-stack-b-gaussian-1.png" width="300" height="300" alt="G1 · σ = 2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G1 · σ = 2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-gaussian-2.png" aria-label="Open G2 · σ = 4">
+            <img src="assets/p2-stack-b-gaussian-2.png" width="300" height="300" alt="G2 · σ = 4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G2 · σ = 4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-gaussian-3.png" aria-label="Open G3 · σ = 8">
+            <img src="assets/p2-stack-b-gaussian-3.png" width="300" height="300" alt="G3 · σ = 8" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G3 · σ = 8</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-gaussian-4.png" aria-label="Open G4 · σ = 16">
+            <img src="assets/p2-stack-b-gaussian-4.png" width="300" height="300" alt="G4 · σ = 16" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G4 · σ = 16</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-gaussian-5.png" aria-label="Open G5 · σ = 32">
+            <img src="assets/p2-stack-b-gaussian-5.png" width="300" height="300" alt="G5 · σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G5 · σ = 32</strong></figcaption>
+        </figure></div>
+    <h3 id="laplacian-levels">Laplacian levels</h3>
+    <p>Gray is zero. Each band has its own display scale, shared by apple and orange; the residual uses ordinary RGB values.</p>
+    <h4>Apple</h4><div class="image-grid columns-6"><figure>
+          <a href="assets/p2-stack-a-laplacian-0.png" aria-label="Open L0">
+            <img src="assets/p2-stack-a-laplacian-0.png" width="300" height="300" alt="L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-laplacian-1.png" aria-label="Open L1">
+            <img src="assets/p2-stack-a-laplacian-1.png" width="300" height="300" alt="L1" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L1</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-laplacian-2.png" aria-label="Open L2">
+            <img src="assets/p2-stack-a-laplacian-2.png" width="300" height="300" alt="L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-laplacian-3.png" aria-label="Open L3">
+            <img src="assets/p2-stack-a-laplacian-3.png" width="300" height="300" alt="L3" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L3</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-laplacian-4.png" aria-label="Open L4">
+            <img src="assets/p2-stack-a-laplacian-4.png" width="300" height="300" alt="L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-a-laplacian-5.png" aria-label="Open Residual · G5">
+            <img src="assets/p2-stack-a-laplacian-5.png" width="300" height="300" alt="Residual · G5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Residual · G5</strong></figcaption>
+        </figure></div><h4>Orange</h4><div class="image-grid columns-6"><figure>
+          <a href="assets/p2-stack-b-laplacian-0.png" aria-label="Open L0">
+            <img src="assets/p2-stack-b-laplacian-0.png" width="300" height="300" alt="L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-laplacian-1.png" aria-label="Open L1">
+            <img src="assets/p2-stack-b-laplacian-1.png" width="300" height="300" alt="L1" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L1</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-laplacian-2.png" aria-label="Open L2">
+            <img src="assets/p2-stack-b-laplacian-2.png" width="300" height="300" alt="L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-laplacian-3.png" aria-label="Open L3">
+            <img src="assets/p2-stack-b-laplacian-3.png" width="300" height="300" alt="L3" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L3</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-laplacian-4.png" aria-label="Open L4">
+            <img src="assets/p2-stack-b-laplacian-4.png" width="300" height="300" alt="L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-b-laplacian-5.png" aria-label="Open Residual · G5">
+            <img src="assets/p2-stack-b-laplacian-5.png" width="300" height="300" alt="Residual · G5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Residual · G5</strong></figcaption>
+        </figure></div>
+    <h3 id="figure-342">Figure 3.42 (a)–(l)</h3>
+    <p>Columns: masked apple, masked orange, and their sum. Rows: L0, L2, L4, then reconstruction using all six levels.</p>
+    <p>Each frequency row shares one signed scale. The bottom contributions are clipped previews; the final blend adds the raw contributions before clipping.</p>
+    <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-oraple-level-0-a.png" aria-label="Open (a) First contribution · L0">
+            <img src="assets/p2-blend-oraple-level-0-a.png" width="300" height="300" alt="(a) First contribution · L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(a) First contribution · L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-0-b.png" aria-label="Open (b) Second contribution · L0">
+            <img src="assets/p2-blend-oraple-level-0-b.png" width="300" height="300" alt="(b) Second contribution · L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(b) Second contribution · L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-0-sum.png" aria-label="Open (c) Combined · L0">
+            <img src="assets/p2-blend-oraple-level-0-sum.png" width="300" height="300" alt="(c) Combined · L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(c) Combined · L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-2-a.png" aria-label="Open (d) First contribution · L2">
+            <img src="assets/p2-blend-oraple-level-2-a.png" width="300" height="300" alt="(d) First contribution · L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(d) First contribution · L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-2-b.png" aria-label="Open (e) Second contribution · L2">
+            <img src="assets/p2-blend-oraple-level-2-b.png" width="300" height="300" alt="(e) Second contribution · L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(e) Second contribution · L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-2-sum.png" aria-label="Open (f) Combined · L2">
+            <img src="assets/p2-blend-oraple-level-2-sum.png" width="300" height="300" alt="(f) Combined · L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(f) Combined · L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-4-a.png" aria-label="Open (g) First contribution · L4">
+            <img src="assets/p2-blend-oraple-level-4-a.png" width="300" height="300" alt="(g) First contribution · L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(g) First contribution · L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-4-b.png" aria-label="Open (h) Second contribution · L4">
+            <img src="assets/p2-blend-oraple-level-4-b.png" width="300" height="300" alt="(h) Second contribution · L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(h) Second contribution · L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-level-4-sum.png" aria-label="Open (i) Combined · L4">
+            <img src="assets/p2-blend-oraple-level-4-sum.png" width="300" height="300" alt="(i) Combined · L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(i) Combined · L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-reconstructed-a.png" aria-label="Open (j) First reconstructed">
+            <img src="assets/p2-blend-oraple-reconstructed-a.png" width="300" height="300" alt="(j) First reconstructed" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(j) First reconstructed</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-reconstructed-b.png" aria-label="Open (k) Second reconstructed">
+            <img src="assets/p2-blend-oraple-reconstructed-b.png" width="300" height="300" alt="(k) Second reconstructed" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(k) Second reconstructed</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-result.png" aria-label="Open (l) Final blend">
+            <img src="assets/p2-blend-oraple-result.png" width="300" height="300" alt="(l) Final blend" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(l) Final blend</strong></figcaption>
+        </figure></div>
+    <h3 id="stack-basketball-soccer">Basketball + soccer across scales</h3>
+        <p>Fine bands retain the seams and surface texture; coarse levels keep the round shape and broad shading. Selected levels of the <a href="#blend-basketball-soccer">final blend</a>:</p>
+        <div class="image-grid columns-6"><figure>
+          <a href="assets/p2-stack-basketball-soccer-gaussian-0.png" aria-label="Open G0 · σ = 0">
+            <img src="assets/p2-stack-basketball-soccer-gaussian-0.png" width="320" height="320" alt="G0 · σ = 0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G0 · σ = 0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-basketball-soccer-gaussian-2.png" aria-label="Open G2 · σ = 4">
+            <img src="assets/p2-stack-basketball-soccer-gaussian-2.png" width="320" height="320" alt="G2 · σ = 4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G2 · σ = 4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-basketball-soccer-gaussian-5.png" aria-label="Open G5 · σ = 32">
+            <img src="assets/p2-stack-basketball-soccer-gaussian-5.png" width="320" height="320" alt="G5 · σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G5 · σ = 32</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-basketball-soccer-laplacian-0.png" aria-label="Open L0">
+            <img src="assets/p2-stack-basketball-soccer-laplacian-0.png" width="320" height="320" alt="L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-basketball-soccer-laplacian-2.png" aria-label="Open L2">
+            <img src="assets/p2-stack-basketball-soccer-laplacian-2.png" width="320" height="320" alt="L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-basketball-soccer-laplacian-5.png" aria-label="Open Residual · G5">
+            <img src="assets/p2-stack-basketball-soccer-laplacian-5.png" width="320" height="320" alt="Residual · G5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Residual · G5</strong></figcaption>
+        </figure></div>
+    <h3 id="stack-golden-gate">Golden Gate across scales</h3>
+        <p>Fine bands isolate cables and foliage; coarse levels retain towers, hills, and the transition to color. Selected levels of the <a href="#blend-golden-gate">final blend</a>:</p>
+        <div class="image-grid columns-6"><figure>
+          <a href="assets/p2-stack-golden-gate-gaussian-0.png" aria-label="Open G0 · σ = 0">
+            <img src="assets/p2-stack-golden-gate-gaussian-0.png" width="640" height="429" alt="G0 · σ = 0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G0 · σ = 0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-golden-gate-gaussian-2.png" aria-label="Open G2 · σ = 4">
+            <img src="assets/p2-stack-golden-gate-gaussian-2.png" width="640" height="429" alt="G2 · σ = 4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G2 · σ = 4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-golden-gate-gaussian-5.png" aria-label="Open G5 · σ = 32">
+            <img src="assets/p2-stack-golden-gate-gaussian-5.png" width="640" height="429" alt="G5 · σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>G5 · σ = 32</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-golden-gate-laplacian-0.png" aria-label="Open L0">
+            <img src="assets/p2-stack-golden-gate-laplacian-0.png" width="640" height="429" alt="L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-golden-gate-laplacian-2.png" aria-label="Open L2">
+            <img src="assets/p2-stack-golden-gate-laplacian-2.png" width="640" height="429" alt="L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-stack-golden-gate-laplacian-5.png" aria-label="Open Residual · G5">
+            <img src="assets/p2-stack-golden-gate-laplacian-5.png" width="640" height="429" alt="Residual · G5" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Residual · G5</strong></figcaption>
+        </figure></div>
+  </section>
+
+  <section id="blending" aria-labelledby="blending-title">
+    <h2 id="blending-title">2.4 · Multiresolution blending</h2>
+    <p>Build Laplacian stacks for the images and a Gaussian stack for the mask. Blend each band with its matching mask, then add the bands. Fine detail crosses a narrow seam while broad color transitions more gradually.</p>
+    <p class="equation">result = Σ [M<sub>k</sub>L<sup>A</sup><sub>k</sub> + (1 − M<sub>k</sub>)L<sup>B</sup><sub>k</sub>]</p>
+    <h3 id="blend-oraple">Apple + orange</h3>
+        <p>A vertical mask selects apple on the left and orange on the right. Multiresolution blending softens the color seam while keeping the texture.</p>
+        <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-oraple-a.png" aria-label="Open First image">
+            <img src="assets/p2-blend-oraple-a.png" width="300" height="300" alt="First image" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>First image</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-b.png" aria-label="Open Second image">
+            <img src="assets/p2-blend-oraple-b.png" width="300" height="300" alt="Second image" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Second image</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-mask.png" aria-label="Open Mask · white selects first">
+            <img src="assets/p2-blend-oraple-mask.png" width="300" height="300" alt="Mask · white selects first" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Mask · white selects first</strong></figcaption>
+        </figure></div>
+        <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-oraple-hard.png" aria-label="Open Direct cut">
+            <img src="assets/p2-blend-oraple-hard.png" width="300" height="300" alt="Direct cut" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Direct cut</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-mask-5.png" aria-label="Open Blurred mask · σ = 32">
+            <img src="assets/p2-blend-oraple-mask-5.png" width="300" height="300" alt="Blurred mask · σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blurred mask · σ = 32</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-result.png" aria-label="Open Multiresolution blend">
+            <img src="assets/p2-blend-oraple-result.png" width="300" height="300" alt="Multiresolution blend" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Multiresolution blend</strong></figcaption>
+        </figure></div>
+    <h4 id="mask-levels">Mask across scales</h4>
+    <div class="image-grid columns-6"><figure>
+          <a href="assets/p2-blend-oraple-mask-0.png" aria-label="Open σ = 0">
+            <img src="assets/p2-blend-oraple-mask-0.png" width="300" height="300" alt="σ = 0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-mask-1.png" aria-label="Open σ = 2">
+            <img src="assets/p2-blend-oraple-mask-1.png" width="300" height="300" alt="σ = 2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-mask-2.png" aria-label="Open σ = 4">
+            <img src="assets/p2-blend-oraple-mask-2.png" width="300" height="300" alt="σ = 4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-mask-3.png" aria-label="Open σ = 8">
+            <img src="assets/p2-blend-oraple-mask-3.png" width="300" height="300" alt="σ = 8" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 8</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-mask-4.png" aria-label="Open σ = 16">
+            <img src="assets/p2-blend-oraple-mask-4.png" width="300" height="300" alt="σ = 16" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 16</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-oraple-mask-5.png" aria-label="Open σ = 32">
+            <img src="assets/p2-blend-oraple-mask-5.png" width="300" height="300" alt="σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>σ = 32</strong></figcaption>
+        </figure></div>
+    <h3 id="blend-basketball-soccer">Basketball + soccer</h3>
+        <p>Both balls are centered and resized to a 256-pixel diameter on a 320 × 320 white canvas. A simple vertical mask joins the basketball’s left half to the soccer ball’s right half. The silhouette stays continuous while orange fades into white.</p>
+        <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-basketball-soccer-a.png" aria-label="Open First image">
+            <img src="assets/p2-blend-basketball-soccer-a.png" width="320" height="320" alt="First image" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>First image</strong><small class="image-credit">Photography by User: MrX · <a href="https://commons.wikimedia.org/wiki/File:Isolated_basketball.png">photo</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> · adapted</small></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-basketball-soccer-b.png" aria-label="Open Second image">
+            <img src="assets/p2-blend-basketball-soccer-b.png" width="320" height="320" alt="Second image" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Second image</strong><small class="image-credit">CAPS LOCK; crop by Kmccoy; transparent background by Kmf164 · <a href="https://commons.wikimedia.org/wiki/File:Soccerball.png">photo</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> · adapted</small></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-basketball-soccer-mask.png" aria-label="Open Mask · white selects first">
+            <img src="assets/p2-blend-basketball-soccer-mask.png" width="320" height="320" alt="Mask · white selects first" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Mask · white selects first</strong></figcaption>
+        </figure></div>
+        <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-basketball-soccer-hard.png" aria-label="Open Direct cut">
+            <img src="assets/p2-blend-basketball-soccer-hard.png" width="320" height="320" alt="Direct cut" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Direct cut</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-basketball-soccer-mask-5.png" aria-label="Open Blurred mask · σ = 32">
+            <img src="assets/p2-blend-basketball-soccer-mask-5.png" width="320" height="320" alt="Blurred mask · σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blurred mask · σ = 32</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-basketball-soccer-result.png" aria-label="Open Multiresolution blend">
+            <img src="assets/p2-blend-basketball-soccer-result.png" width="320" height="320" alt="Multiresolution blend" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Multiresolution blend</strong><small class="image-credit">Blend: <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></small></figcaption>
+        </figure></div>
+    <h3 id="blend-golden-gate">Golden Gate · construction to 2013</h3>
+        <p>The 1930s photograph and the 2013 view are aligned at two tower tops. A curved, irregular mask joins construction on the left to the finished bridge on the right. The viewpoints are close, but foreground and cable differences remain.</p>
+        <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-golden-gate-a.png" aria-label="Open First image">
+            <img src="assets/p2-blend-golden-gate-a.png" width="640" height="429" alt="First image" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>First image</strong><small class="image-credit">US National Park Service · <a href="https://commons.wikimedia.org/wiki/File:Unfinished_Golden_Gate_Bridge_from_Fort_Scott.jpg">photo</a> · <a href="https://www.nps.gov/aboutus/disclaimer.htm">Public domain (US federal government)</a> · adapted</small></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-b.png" aria-label="Open Second image">
+            <img src="assets/p2-blend-golden-gate-b.png" width="640" height="429" alt="Second image" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Second image</strong><small class="image-credit">Leandro Neumann Ciuffo · <a href="https://commons.wikimedia.org/wiki/File:Golden_Gate_bridge_(9331686290).jpg">photo</a> · <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a> · adapted</small></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-mask.png" aria-label="Open Mask · white selects first">
+            <img src="assets/p2-blend-golden-gate-mask.png" width="640" height="429" alt="Mask · white selects first" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Mask · white selects first</strong></figcaption>
+        </figure></div>
+        <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-golden-gate-hard.png" aria-label="Open Direct cut">
+            <img src="assets/p2-blend-golden-gate-hard.png" width="640" height="429" alt="Direct cut" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Direct cut</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-mask-5.png" aria-label="Open Blurred mask · σ = 32">
+            <img src="assets/p2-blend-golden-gate-mask-5.png" width="640" height="429" alt="Blurred mask · σ = 32" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Blurred mask · σ = 32</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-result.png" aria-label="Open Multiresolution blend">
+            <img src="assets/p2-blend-golden-gate-result.png" width="640" height="429" alt="Multiresolution blend" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>Multiresolution blend</strong></figcaption>
+        </figure></div>
+    <h3 id="bridge-bands">Golden Gate · masked frequency bands</h3>
+    <p>Construction-era contribution, 2013 contribution, and their sum at L0, L2, and L4. The last row reconstructs all six levels, including the residual. Display conventions match Figure 3.42 above.</p>
+    <div class="image-grid columns-3"><figure>
+          <a href="assets/p2-blend-golden-gate-level-0-a.png" aria-label="Open (a) First contribution · L0">
+            <img src="assets/p2-blend-golden-gate-level-0-a.png" width="640" height="429" alt="(a) First contribution · L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(a) First contribution · L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-0-b.png" aria-label="Open (b) Second contribution · L0">
+            <img src="assets/p2-blend-golden-gate-level-0-b.png" width="640" height="429" alt="(b) Second contribution · L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(b) Second contribution · L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-0-sum.png" aria-label="Open (c) Combined · L0">
+            <img src="assets/p2-blend-golden-gate-level-0-sum.png" width="640" height="429" alt="(c) Combined · L0" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(c) Combined · L0</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-2-a.png" aria-label="Open (d) First contribution · L2">
+            <img src="assets/p2-blend-golden-gate-level-2-a.png" width="640" height="429" alt="(d) First contribution · L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(d) First contribution · L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-2-b.png" aria-label="Open (e) Second contribution · L2">
+            <img src="assets/p2-blend-golden-gate-level-2-b.png" width="640" height="429" alt="(e) Second contribution · L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(e) Second contribution · L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-2-sum.png" aria-label="Open (f) Combined · L2">
+            <img src="assets/p2-blend-golden-gate-level-2-sum.png" width="640" height="429" alt="(f) Combined · L2" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(f) Combined · L2</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-4-a.png" aria-label="Open (g) First contribution · L4">
+            <img src="assets/p2-blend-golden-gate-level-4-a.png" width="640" height="429" alt="(g) First contribution · L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(g) First contribution · L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-4-b.png" aria-label="Open (h) Second contribution · L4">
+            <img src="assets/p2-blend-golden-gate-level-4-b.png" width="640" height="429" alt="(h) Second contribution · L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(h) Second contribution · L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-level-4-sum.png" aria-label="Open (i) Combined · L4">
+            <img src="assets/p2-blend-golden-gate-level-4-sum.png" width="640" height="429" alt="(i) Combined · L4" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(i) Combined · L4</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-reconstructed-a.png" aria-label="Open (j) First reconstructed">
+            <img src="assets/p2-blend-golden-gate-reconstructed-a.png" width="640" height="429" alt="(j) First reconstructed" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(j) First reconstructed</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-reconstructed-b.png" aria-label="Open (k) Second reconstructed">
+            <img src="assets/p2-blend-golden-gate-reconstructed-b.png" width="640" height="429" alt="(k) Second reconstructed" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(k) Second reconstructed</strong></figcaption>
+        </figure><figure>
+          <a href="assets/p2-blend-golden-gate-result.png" aria-label="Open (l) Final blend">
+            <img src="assets/p2-blend-golden-gate-result.png" width="640" height="429" alt="(l) Final blend" loading="lazy" class="" />
+          </a>
+          <figcaption><strong>(l) Final blend</strong></figcaption>
+        </figure></div>
+  </section>
+
+
+  <section id="lesson" aria-labelledby="lesson-title">
+    <h2 id="lesson-title">Lesson I learned</h2>
+    <p>The biggest lesson was that different spatial frequencies need different treatment. Sharpening strengthens existing detail, hybrid images change which features stand out at a distance, and multiresolution blending softens color transitions while preserving texture. These operations can change how an image looks, but they cannot recover missing detail or fix mismatched geometry.</p>
+  </section>
+</main>
+</div>
+<script>
+  const toc = document.querySelector('.toc');
+  const list = toc.querySelector('nav > ol');
+  const links = [...toc.querySelectorAll('nav a')];
+  const targets = links.map(link => ({ link, target: document.querySelector(link.hash) }));
+  const compact = window.matchMedia('(max-width: 760px)');
+  let queued = false;
+  let current;
+
+  function updateContents() {
+    queued = false;
+    const offset = compact.matches ? toc.offsetHeight + 24 : 32;
+    document.documentElement.style.setProperty('--anchor-offset', offset + 'px');
+    const visibleTargets = targets.filter(item => !compact.matches || !item.link.closest('.toc-sublist'));
+    let active = visibleTargets[0];
+    for (const item of visibleTargets) {
+      if (item.target.getBoundingClientRect().top <= offset + 4) active = item;
+    }
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2)
+      active = visibleTargets[visibleTargets.length - 1];
+    if (active.link === current) return;
+    for (const link of links) link.removeAttribute('aria-current');
+    active.link.setAttribute('aria-current', 'location');
+    current = active.link;
+    const bounds = current.getBoundingClientRect();
+    const container = (compact.matches ? list : toc).getBoundingClientRect();
+    if (compact.matches) {
+      if (bounds.left < container.left || bounds.right > container.right)
+        list.scrollLeft += bounds.left - container.left - (container.width - bounds.width) / 2;
+    } else if (bounds.top < container.top || bounds.bottom > container.bottom) {
+      toc.scrollTop += bounds.top - container.top - (container.height - bounds.height) / 2;
+    }
+  }
+
+  function scheduleUpdate() {
+    if (!queued) { queued = true; requestAnimationFrame(updateContents); }
+  }
+  window.addEventListener('scroll', scheduleUpdate, { passive: true });
+  window.addEventListener('resize', scheduleUpdate);
+  window.addEventListener('hashchange', scheduleUpdate);
+  window.addEventListener('load', scheduleUpdate);
+  updateContents();
+</script>
+</body>
 </html>

@@ -7,3 +7,8 @@ Coursework for [CS 180: Introduction to Computer Vision and Computational Photog
 ## Project 0: Becoming Friends with Your Camera
 
 [Project 0](https://cs180.rayshineeeee.com/proj0/) explores how camera position and focal length affect perspective.
+
+## Project 2: Fun with Filters and Frequencies
+
+[Project 2](https://cs180.rayshineeeee.com/proj2/) covers convolution, edges,
+sharpening, hybrid images, Gaussian/Laplacian stacks, and multiresolution blending.
