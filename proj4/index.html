@@ -50,8 +50,7 @@ h = [a b c d e f g h]ᵀ</pre>
 H = [ 0.22806536   1.11792692  -158.489072 ]
     [ 0.00022645  -0.00003805     1.000000 ]</pre>
 <p>The RMS reprojection error is <strong>3.51 pixels</strong>, with a maximum of 6.71 pixels. These errors use the fitting points themselves, so they check the fit rather than independently proving alignment across the scene. The approximate point coordinates are stored directly in the main script.</p>
-<div class="table-wrap"><table><thead><tr><th scope="col">Mosaic pair</th><th scope="col">Matches</th><th scope="col">RMS error</th></tr></thead><tbody><tr><td>Balcony: 01 → 02</td><td>10</td><td>2.49 px</td></tr><tr><td>Courtyard: 03 → 04</td><td>14</td><td>4.09 px</td></tr><tr><td>Lunch room: left → center</td><td>12</td><td>2.56 px</td></tr><tr><td>Lunch room: right → center</td><td>12</td><td>3.02 px</td></tr></tbody></table></div>
-<p class="note">Mosaic errors use working images resized to a longest side of 1400 pixels, with annotations scaled accordingly. This explains the difference from the original-resolution example above.</p></section>
+</section>
 <section id="warping"><h2>A.3 · Warp and rectify images</h2>
 <p>Once H is known, I still need to fill the output pixels. Forward-mapping source pixels can leave holes after rounding. Instead, I visit each output pixel, apply H⁻¹ to find its source location, divide by the homogeneous coordinate, and sample there.</p>
 <p>For an unrestricted warp, I transform the four source corners to find the output bounds. I retain negative coordinates through a canvas origin. A separate validity mask distinguishes empty space from real black pixels.</p>
@@ -89,7 +88,7 @@ bottom left:  (1 − dx)dy          bottom right: dx·dy</pre>
 <p>The center photograph stays fixed while the left and right images warp toward it. Linear feathering makes overlapping wall regions more continuous. Approximate correspondences and uncorrected lens distortion can still leave small errors. I keep the dataset's original blue cast rather than applying color correction.</p>
 <p class="note">Sources and derived panorama: PASSTA Lunch Room Blue, Meneghetti et al., <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; dataset credit and archive linked in A.1.</p></article></section>
 <section id="lesson"><h2>What I learned</h2><p>The balcony result helped me understand why a low reprojection error is not enough. The building lines up, but parts of the railing still appear twice. They are at different depths, so camera translation affects them differently. Feathering makes the transition less obvious, but the mismatch is still there. Taking the photos without shifting the camera's position would help more than adjusting the blend.</p></section>
-<footer><p><a href="https://cal-cs180.github.io/fa26/hw/proj3/partA.html">Assignment specification</a> · <a href="../">All projects</a></p><p>Ray Sun · UC Berkeley · CS 180</p></footer>
+<footer><p><a href="../">All projects</a></p><p>Ray Sun · UC Berkeley · CS 180</p></footer>
 </main></div>
 <script>
 const links=[...document.querySelectorAll('nav a[href^="#"]')];
